@@ -1,0 +1,194 @@
+﻿@model IEnumerable<Task.Models.Employee>
+
+@{
+    ViewBag.Title = "Index";
+    var states = ViewBag.States as List<Task.Models.States>;
+
+}
+
+<h2>Index</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+
+<div class="container">
+    <div class="row">
+        <div class="col-8">
+            <h3>Employee List</h3>
+            <table class="table">
+                <tr>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Name)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Salary)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Department)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.State)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Talukha)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.City)
+                    </th>
+                    <th></th>
+                </tr>
+
+                @foreach (var item in Model)
+                {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Name)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Salary)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Department)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.State)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Talukha)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.City)
+                    </td>
+                    <td>
+                        @Html.ActionLink("Add", "Add", null, new { @class = "btn btn-primary add-btn", data_employeeid = item.Id })
+                    </td>
+                </tr>
+                }
+            </table>
+        </div>
+        <div class="col-4">
+            <h3>Add Location Of Employee</h3>
+
+            <div class="form-group">
+                <label class="control-label">States</label>
+                <select class="form-control" id="stateDropdown">
+                    @foreach (var state in states)
+                    {
+                    <option value="@state.StateID">@state.StateName</option>
+                    }
+                </select>
+
+                <span class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label">Talukha</label>
+                <select class="form-control" id="talukhaDropdown">
+                    <option value="">Select a talukha...</option>
+                </select>
+                <span class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label">Cities</label>
+                <select class="form-control" id="cityDropdown">
+                    <option value="">Select a city...</option>
+                </select>
+                <span class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        <script>
+            $(document).ready(function () {
+
+                function loadTalukas(stateId) {
+                    if (stateId) {
+                        $.ajax({
+                            url: '@Url.Action("GetTalukas", "Employee")',
+                            type: 'GET',
+                            data: { stateId: stateId },
+                            success: function (data) {
+                                console.log(data);
+                                $.each(data, function (i, talukas) {
+                                    $('#talukhaDropdown').append($('<option>', {
+                                        value: talukas.TalukhaID,
+                                        text: talukas.TalukhaName
+                                    }));
+                                });
+                            }
+                        });
+                    }
+                }
+
+                function loadCities(talukhaId) {
+                    if (talukhaId) {
+                        $.ajax({
+                            url: '@Url.Action("GetCities", "Employee")',
+                            type: 'GET',
+                            data: { talukhaId: talukhaId },
+                            success: function (data) {
+                                console.log(data);
+                                $.each(data, function (i, city) {
+                                    $('#cityDropdown').append($('<option>', {
+                                        value: city.CityID,
+                                        text: city.CityName
+                                    }));
+                                });
+                            }
+                        });
+                    }
+                }
+
+                $('.add-btn').click(function (e) {
+                    e.preventDefault();
+                    var employeeId = $(this).data('employeeid');
+                    var stateName = $('#stateDropdown option:selected').text();
+                    var talukhaName = $('#talukhaDropdown option:selected').text();
+                    var cityName = $('#cityDropdown option:selected').text();
+
+                    $.ajax({
+                        url: '@Url.Action("AddLocation", "Employee")',
+                        type: 'POST',
+                        data: {
+                            employeeId: employeeId,
+                            stateName: stateName,
+                            talukhaName: talukhaName,
+                            cityName: cityName
+                        },
+                        success: function (data) {
+                            window.location.href = '@Url.Action("Index", "Employee")';
+                        },
+                        error: function (error) {
+                            alert('Error adding location: ' + error);
+                        }
+                    });
+                });
+
+                $('#stateDropdown').change(function () {
+                    var stateId = $(this).val();
+                    $('#talukhaDropdown').empty().append('<option value="">Select a talukha...</option>');
+                    $('#cityDropdown').empty().append('<option value="">Select a city...</option>');
+
+                    loadTalukas(stateId);
+                });
+
+                $('#talukhaDropdown').change(function () {
+                    var talukhaId = $(this).val();
+                    $('#cityDropdown').empty().append('<option value="">Select a city...</option>');
+
+                    loadCities(talukhaId);
+                });
+
+                var initialStateId = $('#stateDropdown').val();
+                if (initialStateId) {
+                    loadTalukas(initialStateId);
+                }
+            });
+        </script>
+    }
+}

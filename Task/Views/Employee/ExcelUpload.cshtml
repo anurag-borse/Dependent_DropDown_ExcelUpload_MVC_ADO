@@ -1,0 +1,54 @@
+﻿@model IEnumerable<Task.Models.Orders>
+
+@{
+    ViewBag.Title = "Excel Upload";
+}
+
+<h2>Excel Upload</h2>
+
+@using (Html.BeginForm("ExcelUpload", "Employee", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+<input type="file" name="file" />
+<input type="submit" value="Upload" />
+}
+
+@if (Model != null && Model.Any())
+{
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Order ID</th>
+            <th scope="col">Order Date</th>
+            <th scope="col">Order Quantity</th>
+            <th scope="col">Sales</th>
+            <th scope="col">Ship Mode</th>
+            <th scope="col">Profit</th>
+            <th scope="col">Unit Price</th>
+            <th scope="col">Customer Name</th>
+            <th scope="col">Customer Segment</th>
+            <th scope="col">Product Category</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var order in Model)
+            {
+        <tr>
+            <td>@order.OrderID</td>
+            <td>@order.OrderDate.ToString("MM/dd/yyyy")</td>
+            <td>@order.OrderQuantity</td>
+            <td>@order.Sales</td>
+            <td>@order.ShipMode</td>
+            <td>@order.Profit</td>
+            <td>@order.UnitPrice</td>
+            <td>@order.CustomerName</td>
+            <td>@order.CustomerSegment</td>
+            <td>@order.ProductCategory</td>
+        </tr>
+            }
+    </tbody>
+</table>
+}
+else
+{
+<p>No orders available.</p>
+}
