@@ -8,257 +8,251 @@ namespace Task.Repo
 {
     public class Repository
     {
-        private SqlConnection _connection;
+        private readonly string _connectionString;
 
         public Repository()
         {
-            string connectionString = "Server=.;Database=Task;Trusted_Connection=Yes";
+            _connectionString = "Server=DESKTOP-U9TQCSK\\SQLEXPRESS01;Database=Task;Trusted_Connection=Yes";
+        }
 
-            _connection = new SqlConnection(connectionString);
+        private SqlConnection GetConnection()
+        {
+            return new SqlConnection(_connectionString);
         }
 
         public List<Employee> GetAllEmployees()
         {
             List<Employee> employees = new List<Employee>();
-            SqlCommand cmd = new SqlCommand("getEmployees", _connection);
-            cmd.CommandType = System.Data.CommandType.StoredProcedure;
-
-            SqlDataAdapter sqlDataAdapter = new SqlDataAdapter(cmd);
-
-            DataTable dataTable = new DataTable();
-            sqlDataAdapter.Fill(dataTable);
-
-            foreach (DataRow emp in dataTable.Rows)
+            using (SqlConnection connection = GetConnection())
             {
-                employees.Add(new Employee
+                using (SqlCommand cmd = new SqlCommand("getEmployees", connection))
                 {
-                    Id = Convert.ToInt32(emp["ID"]),
-                    Name = emp["EmployeeName"].ToString(),
-                    Department = emp["EmployeeDept"].ToString(),
-                    Salary = Convert.ToInt32(emp["EmployeeSalary"]),
-                    State = emp["EmployeeState"].ToString(),
-                    Talukha = emp["EmployeeTalukha"].ToString(),
-                    City = emp["EmployeeCity"].ToString()
-                });
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    connection.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            employees.Add(new Employee
+                            {
+                                Id = Convert.ToInt32(reader["ID"]),
+                                Name = reader["EmployeeName"].ToString(),
+                                Department = reader["EmployeeDept"].ToString(),
+                                Salary = Convert.ToInt32(reader["EmployeeSalary"]),
+                                State = reader["EmployeeState"].ToString(),
+                                Talukha = reader["EmployeeTalukha"].ToString(),
+                                City = reader["EmployeeCity"].ToString()
+                            });
+                        }
+                    }
+                }
             }
-
             return employees;
         }
 
         public List<States> GetStates()
         {
             List<States> states = new List<States>();
-            SqlCommand cmd = new SqlCommand("GetStates", _connection);
-            cmd.CommandType = System.Data.CommandType.StoredProcedure;
-
-            SqlDataAdapter sqlDataAdapter = new SqlDataAdapter(cmd);
-
-            DataTable dataTable = new DataTable();
-            sqlDataAdapter.Fill(dataTable);
-
-            foreach (DataRow emp in dataTable.Rows)
+            using (SqlConnection connection = GetConnection())
             {
-                states.Add(new States
+                using (SqlCommand cmd = new SqlCommand("GetStates", connection))
                 {
-                    StateID = Convert.ToInt32(emp["StateID"]),
-                    StateName = emp["StateName"].ToString()
-                });
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    connection.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            states.Add(new States
+                            {
+                                StateID = Convert.ToInt32(reader["StateID"]),
+                                StateName = reader["StateName"].ToString()
+                            });
+                        }
+                    }
+                }
             }
-
             return states;
         }
 
         public List<Talukha> GetTalukas(int stateId)
         {
             List<Talukha> talukhas = new List<Talukha>();
-
-            SqlCommand command = new SqlCommand("GetTalukhasByState", _connection);
-            command.CommandType = System.Data.CommandType.StoredProcedure;
-
-            SqlParameter parameter = new SqlParameter("@StateID", stateId);
-            command.Parameters.Add(parameter);
-
-            SqlDataAdapter adapter = new SqlDataAdapter(command);
-            DataTable dataTable = new DataTable();
-            adapter.Fill(dataTable);
-
-            foreach (DataRow talukhaRow in dataTable.Rows)
+            using (SqlConnection connection = GetConnection())
             {
-                Talukha talukha = new Talukha
+                using (SqlCommand cmd = new SqlCommand("GetTalukhasByState", connection))
                 {
-                    TalukhaID = Convert.ToInt32(talukhaRow["TalukhaID"]),
-                    TalukhaName = talukhaRow["TalukhaName"].ToString()
-                };
-                talukhas.Add(talukha);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@StateID", stateId);
+                    connection.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            talukhas.Add(new Talukha
+                            {
+                                TalukhaID = Convert.ToInt32(reader["TalukhaID"]),
+                                TalukhaName = reader["TalukhaName"].ToString()
+                            });
+                        }
+                    }
+                }
             }
-
             return talukhas;
         }
 
         public List<Cities> GetCities(int talukhaId)
         {
             List<Cities> cities = new List<Cities>();
-
-            SqlCommand command = new SqlCommand("GetCitiesByTalukha", _connection);
-            command.CommandType = System.Data.CommandType.StoredProcedure;
-
-            SqlParameter parameter = new SqlParameter("@TalukhaID", talukhaId);
-            command.Parameters.Add(parameter);
-
-            SqlDataAdapter adapter = new SqlDataAdapter(command);
-            DataTable dataTable = new DataTable();
-            adapter.Fill(dataTable);
-
-            foreach (DataRow talukhaRow in dataTable.Rows)
+            using (SqlConnection connection = GetConnection())
             {
-                Cities city = new Cities
+                using (SqlCommand cmd = new SqlCommand("GetCitiesByTalukha", connection))
                 {
-                    CityID = Convert.ToInt32(talukhaRow["CityID"]),
-                    CityName = talukhaRow["CityName"].ToString()
-                };
-                cities.Add(city);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@TalukhaID", talukhaId);
+                    connection.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            cities.Add(new Cities
+                            {
+                                CityID = Convert.ToInt32(reader["CityID"]),
+                                CityName = reader["CityName"].ToString()
+                            });
+                        }
+                    }
+                }
             }
-
             return cities;
         }
 
-        public Employee GetEmployeesByID(int id)
+        public Employee GetEmployeeById(int id)
         {
-            Employee employees = new Employee();
-
-            SqlCommand command = new SqlCommand("getEmployeeById", _connection);
-            command.CommandType = System.Data.CommandType.StoredProcedure;
-
-            SqlParameter parameter;
-            command.Parameters.Add(new SqlParameter("@ID", id));
-
-            SqlDataAdapter adapter = new SqlDataAdapter(command);
-
-            DataTable dataTable = new DataTable();
-            adapter.Fill(dataTable);
-            foreach (DataRow emp in dataTable.Rows)
+            Employee employee = null;
+            using (SqlConnection connection = GetConnection())
             {
-                employees = new Employee
+                using (SqlCommand cmd = new SqlCommand("getEmployeeById", connection))
                 {
-                    Id = Convert.ToInt32(emp["ID"]),
-                    Name = emp["EmployeeName"].ToString(),
-                    Department = emp["EmployeeDept"].ToString(),
-                    Salary = Convert.ToInt32(emp["EmployeeSalary"]),
-                    State = emp["EmployeeState"].ToString(),
-                    Talukha = emp["EmployeeTalukha"].ToString(),
-                    City = emp["EmployeeCity"].ToString()
-                };
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@ID", id);
+                    connection.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            employee = new Employee
+                            {
+                                Id = Convert.ToInt32(reader["ID"]),
+                                Name = reader["EmployeeName"].ToString(),
+                                Department = reader["EmployeeDept"].ToString(),
+                                Salary = Convert.ToInt32(reader["EmployeeSalary"]),
+                                State = reader["EmployeeState"].ToString(),
+                                Talukha = reader["EmployeeTalukha"].ToString(),
+                                City = reader["EmployeeCity"].ToString()
+                            };
+                        }
+                    }
+                }
             }
-
-            return employees;
+            return employee;
         }
 
         public bool AddEmployee(Employee employee)
         {
-            SqlCommand command = new SqlCommand("addEmployee", _connection);
-            command.CommandType = System.Data.CommandType.StoredProcedure;
-
-            command.Parameters.AddWithValue("@EmployeeName", employee.Name);
-            command.Parameters.AddWithValue("@EmployeeSalary", employee.Salary);
-            command.Parameters.AddWithValue("@EmployeeDept", employee.Department);
-            command.Parameters.AddWithValue("@EmployeeState", employee.State);
-            command.Parameters.AddWithValue("@EmployeeTalukha", employee.Talukha);
-            command.Parameters.AddWithValue("@EmployeeCity", employee.City);
-
-            _connection.Open();
-            int rowAffected = command.ExecuteNonQuery();
-            _connection.Close();
-
-            if (rowAffected > 0)
+            using (SqlConnection connection = GetConnection())
             {
-                return true;
-            }
-            else
-            {
-                return false;
+                using (SqlCommand cmd = new SqlCommand("addEmployee", connection))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@EmployeeName", employee.Name);
+                    cmd.Parameters.AddWithValue("@EmployeeSalary", employee.Salary);
+                    cmd.Parameters.AddWithValue("@EmployeeDept", employee.Department);
+                    cmd.Parameters.AddWithValue("@EmployeeState", employee.State);
+                    cmd.Parameters.AddWithValue("@EmployeeTalukha", employee.Talukha);
+                    cmd.Parameters.AddWithValue("@EmployeeCity", employee.City);
+
+                    connection.Open();
+                    int rowsAffected = cmd.ExecuteNonQuery();
+                    return rowsAffected > 0;
+                }
             }
         }
 
         public bool UpdateEmployeeLocation(int employeeId, string stateName, string talukhaName, string cityName)
         {
-            SqlCommand cmd = new SqlCommand("UpdateEmployeeLocation", _connection);
-            cmd.CommandType = System.Data.CommandType.StoredProcedure;
-
-            cmd.Parameters.AddWithValue("@EmployeeID", employeeId);
-            cmd.Parameters.AddWithValue("@StateName", stateName);
-            cmd.Parameters.AddWithValue("@TalukhaName", talukhaName);
-            cmd.Parameters.AddWithValue("@CityName", cityName);
-
-            _connection.Open();
-            int rowsAffected = cmd.ExecuteNonQuery();
-            _connection.Close();
-
-            if (rowsAffected > 0)
+            using (SqlConnection connection = GetConnection())
             {
-                return true;
-            }
-            else
-            {
-                return false;
+                using (SqlCommand cmd = new SqlCommand("UpdateEmployeeLocation", connection))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@EmployeeID", employeeId);
+                    cmd.Parameters.AddWithValue("@StateName", stateName);
+                    cmd.Parameters.AddWithValue("@TalukhaName", talukhaName);
+                    cmd.Parameters.AddWithValue("@CityName", cityName);
+
+                    connection.Open();
+                    int rowsAffected = cmd.ExecuteNonQuery();
+                    return rowsAffected > 0;
+                }
             }
         }
 
-        public bool InsertOrder(int orderId, DateTime orderDate, int orderQuantity, int sales, string shipMode, int profit, int unitPrice, string customerName, string customerSegment, string productCategory)
+        public bool InsertOrder(Orders order)
         {
-            using (SqlCommand cmd = new SqlCommand("InsertOrder", _connection))
+            using (SqlConnection connection = GetConnection())
             {
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@OrderID", orderId);
-                cmd.Parameters.AddWithValue("@OrderDate", orderDate);
-                cmd.Parameters.AddWithValue("@OrderQuantity", orderQuantity);
-                cmd.Parameters.AddWithValue("@Sales", sales);
-                cmd.Parameters.AddWithValue("@ShipMode", shipMode);
-                cmd.Parameters.AddWithValue("@Profit", profit);
-                cmd.Parameters.AddWithValue("@UnitPrice", unitPrice);
-                cmd.Parameters.AddWithValue("@CustomerName", customerName);
-                cmd.Parameters.AddWithValue("@CustomerSegment", customerSegment);
-                cmd.Parameters.AddWithValue("@ProductCategory", productCategory);
+                using (SqlCommand cmd = new SqlCommand("InsertOrder", connection))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@OrderID", order.OrderID);
+                    cmd.Parameters.AddWithValue("@OrderDate", order.OrderDate);
+                    cmd.Parameters.AddWithValue("@OrderQuantity", order.OrderQuantity);
+                    cmd.Parameters.AddWithValue("@Sales", order.Sales);
+                    cmd.Parameters.AddWithValue("@ShipMode", order.ShipMode);
+                    cmd.Parameters.AddWithValue("@Profit", order.Profit);
+                    cmd.Parameters.AddWithValue("@UnitPrice", order.UnitPrice);
+                    cmd.Parameters.AddWithValue("@CustomerName", order.CustomerName);
+                    cmd.Parameters.AddWithValue("@CustomerSegment", order.CustomerSegment);
+                    cmd.Parameters.AddWithValue("@ProductCategory", order.ProductCategory);
 
-                _connection.Open();
-                int rowsAffected = cmd.ExecuteNonQuery();
-                _connection.Close();
-
-                return rowsAffected > 0;
+                    connection.Open();
+                    int rowsAffected = cmd.ExecuteNonQuery();
+                    return rowsAffected > 0;
+                }
             }
         }
 
         public List<Orders> GetOrders()
         {
             List<Orders> orders = new List<Orders>();
-
-            SqlCommand cmd = new SqlCommand("GetOrder", _connection);
-
-            cmd.CommandType = CommandType.StoredProcedure;
-
-            _connection.Open();
-            using (SqlDataReader reader = cmd.ExecuteReader())
+            using (SqlConnection connection = GetConnection())
             {
-                while (reader.Read())
+                using (SqlCommand cmd = new SqlCommand("GetOrder", connection))
                 {
-                    Orders order = new Orders
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    connection.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        OrderID = Convert.ToInt32(reader["OrderID"]),
-                        OrderDate = Convert.ToDateTime(reader["OrderDate"]),
-                        OrderQuantity = Convert.ToInt32(reader["OrderQuantity"]),
-                        Sales = Convert.ToInt32(reader["Sales"]),
-                        ShipMode = reader["ShipMode"].ToString(),
-                        Profit = Convert.ToInt32(reader["Profit"]),
-                        UnitPrice = Convert.ToInt32(reader["UnitPrice"]),
-                        CustomerName = reader["CustomerName"].ToString(),
-                        CustomerSegment = reader["CustomerSegment"].ToString(),
-                        ProductCategory = reader["ProductCategory"].ToString()
-                    };
-
-                    orders.Add(order);
+                        while (reader.Read())
+                        {
+                            orders.Add(new Orders
+                            {
+                                OrderID = Convert.ToInt32(reader["OrderID"]),
+                                OrderDate = Convert.ToDateTime(reader["OrderDate"]),
+                                OrderQuantity = Convert.ToInt32(reader["OrderQuantity"]),
+                                Sales = Convert.ToInt32(reader["Sales"]),
+                                ShipMode = reader["ShipMode"].ToString(),
+                                Profit = Convert.ToInt32(reader["Profit"]),
+                                UnitPrice = Convert.ToInt32(reader["UnitPrice"]),
+                                CustomerName = reader["CustomerName"].ToString(),
+                                CustomerSegment = reader["CustomerSegment"].ToString(),
+                                ProductCategory = reader["ProductCategory"].ToString()
+                            });
+                        }
+                    }
                 }
             }
-            _connection.Close();
-
             return orders;
         }
     }

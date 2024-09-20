@@ -91,18 +91,21 @@ namespace Task.Controllers
 
                         while (reader.Read())
                         {
-                            int orderId = Convert.ToInt32(reader.GetValue(0));
-                            DateTime orderDate = Convert.ToDateTime(reader.GetValue(1));
-                            int orderQuantity = Convert.ToInt32(reader.GetValue(2));
-                            int sales = Convert.ToInt32(reader.GetValue(3));
-                            string shipMode = reader.GetString(4);
-                            int profit = Convert.ToInt32(reader.GetValue(5));
-                            int unitPrice = Convert.ToInt32(reader.GetValue(6));
-                            string customerName = reader.GetString(7);
-                            string customerSegment = reader.GetString(8);
-                            string productCategory = reader.GetString(9);
+                            var order = new Orders
+                            {
+                                OrderID = Convert.ToInt32(reader.GetValue(0)),
+                                OrderDate = Convert.ToDateTime(reader.GetValue(1)),
+                                OrderQuantity = Convert.ToInt32(reader.GetValue(2)),
+                                Sales = Convert.ToInt32(reader.GetValue(3)),
+                                ShipMode = reader.GetString(4),
+                                Profit = Convert.ToInt32(reader.GetValue(5)),
+                                UnitPrice = Convert.ToInt32(reader.GetValue(6)),
+                                CustomerName = reader.GetString(7),
+                                CustomerSegment = reader.GetString(8),
+                                ProductCategory = reader.GetString(9)
+                            };
 
-                            _repository.InsertOrder(orderId, orderDate, orderQuantity, sales, shipMode, profit, unitPrice, customerName, customerSegment, productCategory);
+                            _repository.InsertOrder(order);
                         }
                     }
                 }
